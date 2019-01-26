@@ -1,7 +1,11 @@
-// TODO_0: Zaimportuj RxCocoa & RxSwift
 import UIKit
+import RxSwift
+import RxCocoa
+
 
 class TimetableViewController: UIViewController, UITableViewDataSource { // TODO_2_DELETE: Usuń `UITableViewDataSource`
+
+    private let disposeBag = DisposeBag()
 
     init(timetableService: TimetableService = LocalFileTimetableService(),
          presenter: TimeTableCellPresenter = TimeTableCellPresenter(),
@@ -118,25 +122,21 @@ class TimetableViewController: UIViewController, UITableViewDataSource { // TODO
 
     // MARK: Filter view
 
-    // TODO_1:
-    // 1. Usuń wszystkie fragmenty kodu oznaczone komentarzem: `TODO_1_DELETE`
-    // 2. Zrefactoruj kod tak, aby użyć właściwości rx.selectedSegmentIndex na UISegmentedControl:
-    //   a. zamień wyliczenia filtru na przekształcenia funkcyjne
-    //   b. zawołaj prywatną metodę update(filter:entries:) w subskrypcji
-    // 3. Zweryfikuj poprawność refactoringu uruchamiając testy jednostkowe
-
     private func setUpSegments() {
-        timetableView.filterView.segmentedControl.addTarget(self, action: #selector(didSelectFilter), for: .valueChanged) // TODO_1_DELETE: Usuń
+
+        timetableView.filterView.segmentedControl.rx.selectedSegmentIndex
+            .filter { $0 != UISegmentedControl.noSegment }
+            .map { Filter.allCases[$0] }
+            .subscribe(onNext: { [weak self] in
+                guard let self = self else { return }
+                self.update(filter: $0, entries: self.allEntries)
+            })
+            .disposed(by: disposeBag)
 
         Filter.allCases.enumerated().forEach { index, filter in
             let segmentedControl = timetableView.filterView.segmentedControl
             segmentedControl.insertSegment(withTitle: filter.rawValue, at: index, animated: false)
         }
-    }
-
-    @objc private func didSelectFilter() { // TODO_1_DELETE: Usuń
-        let filter = Filter.allCases[timetableView.filterView.segmentedControl.selectedSegmentIndex]
-        update(filter: filter, entries: allEntries)
     }
 
     private func selectFirstSegment() {
