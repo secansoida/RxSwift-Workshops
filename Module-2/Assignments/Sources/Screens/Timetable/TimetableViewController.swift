@@ -64,17 +64,9 @@ class TimetableViewController: UIViewController {
     private func configure(cell: TimetableEntryCell, with entry: TimetableEntry) {
         presenter.present(model: entry, in: cell)
 
-        // TODO_3:
-        // 1. Usuń fragment kodu oznaczony komentarzem `TODO_3_DELETE`.
-        // 2. Zastąp wywołanie closure'a rx'owym obsłużeniem tapnięcia na przycisk:
-        //   a. zastanów się co stanie się jeśli subskrypcja zostanie przypięta do dispose baga wewnątrz controllera
-        //   b. rozwiąż problem zdiagnozowany w punkcie a. - do tego celu przenalizuj implementację funkcji
-        //      prepareForReuse() wewnątrz klasy TimetableEntryCell
-        // 3. Zweryfikuj poprawność refactoringu uruchamiając testy jednostkowe
-
-        cell.didTapCheckInButton = { [weak self] in // TODO_3_DELETE: Usuń cały closure
+        cell.checkInButton.rx.tap.subscribe(onNext: { [weak self] in
             self?.pushCheckInViewController(timetableID: entry.id)
-        }
+        }).disposed(by: cell.disposeBag)
     }
 
     private func pushCheckInViewController(timetableID: Int) {
