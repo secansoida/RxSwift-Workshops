@@ -3,7 +3,7 @@ import RxSwift
 import RxCocoa
 
 
-class TimetableViewController: UIViewController, UITableViewDataSource { // TODO_2_DELETE: Usuń `UITableViewDataSource`
+class TimetableViewController: UIViewController {
 
     private let disposeBag = DisposeBag()
 
@@ -39,64 +39,26 @@ class TimetableViewController: UIViewController, UITableViewDataSource { // TODO
         setUpRefreshControl()
     }
 
-    // TODO_2_DELETE: Usuń `MARK - UITableViewDataSource` wraz z całym kodem poniżej do `MARK - Private`
-
-    // MARK: - UITableViewDataSource
-
-    private func update(filter: Filter, entries: [TimetableEntry]) {
-        allEntries = entries
-        filteredEntries = timetableFilter.apply(filter: filter, for: entries)
-    }
-
-    private var allEntries: [TimetableEntry] = []
-
-    private var filteredEntries: [TimetableEntry] = [] {
-        didSet {
-            timetableView.tableView.reloadData()
-        }
-    }
-
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return filteredEntries.count
-    }
-
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: "TimetableCell",
-                                                       for: indexPath) as? TimetableEntryCell else {
-            fatalError("Could NOT dequeue cell for TimetableCell identifier")
-        }
-
-        let model = filteredEntries[indexPath.row]
-        configure(cell: cell, with: model)
-        return cell
-    }
-
     // MARK: - Private
 
     private let timetableService: TimetableService
     private let presenter: TimeTableCellPresenter
     private let timetableFilter: TimetableFiltering
 
-    // TODO_2:
-    // 1. Usuń całą implementację funkcji oznaczonej komentarzem `TODO_2_REPLACE`
-    // 2. Zastąp bieżącą implementację metody setUpTableViewDataSource() rx'owym bindingiem:
-    //   a. wykorzystaj strumień timetableEntries pochodzący z zależności timetableService
-    //   b. znajdź sposób na połączenia strumienia a. ze zmianą filtru w segmented control
-    //      (podpowiedź: kod napisałeś już w ramach TODO_1)
-    //   c. wynikowy strumień podepnij do table view używając właściwości rx.items na UITableView
-    //   d. nie zapomnij obsłużyć potencjalnego błędu (może on pochodzić np. ze strumienia timetableEntries) -
-    //      przekształć błąd w pustą tablicę
-    // 3. Zweryfikuj poprawność refactoringu uruchamiając testy jednostkowe
+    private func setUpTableViewDataSource() {
 
-    private func setUpTableViewDataSource() { // TODO_2_REPLACE: Zastąp implementację funkcji
-        timetableView.tableView.dataSource = self
+        let filter = timetableView.filterView.segmentedControl.rx.selectedSegmentIndex
+            .filter { $0 != UISegmentedControl.noSegment }
+            .map { Filter.allCases[$0] }
 
-        timetableService.fetch(completion: { [unowned self] entries in
-            let filter = Filter.allCases[self.timetableView.filterView.segmentedControl.selectedSegmentIndex]
-            let entries = entries.sorted { $0.departureTime < $1.departureTime }
-
-            self.update(filter: filter, entries: entries)
-        })
+        Observable.combineLatest(filter, timetableService.timetableEntries)
+            .map { [weak self] in self?.timetableFilter.apply(filter: $0, for: $1) ?? [] }
+            .map { $0.sorted { $0.departureTime < $1.departureTime } }
+            .asDriver(onErrorJustReturn: [])
+            .drive(timetableView.tableView.rx.items(cellIdentifier: "TimetableCell")) { [weak self] index, model, cell in
+                self?.configure(cell: cell, with: model)
+            }
+            .disposed(by: disposeBag)
     }
 
     private func configure(cell: TimetableEntryCell, with entry: TimetableEntry) {
@@ -123,15 +85,6 @@ class TimetableViewController: UIViewController, UITableViewDataSource { // TODO
     // MARK: Filter view
 
     private func setUpSegments() {
-
-        timetableView.filterView.segmentedControl.rx.selectedSegmentIndex
-            .filter { $0 != UISegmentedControl.noSegment }
-            .map { Filter.allCases[$0] }
-            .subscribe(onNext: { [weak self] in
-                guard let self = self else { return }
-                self.update(filter: $0, entries: self.allEntries)
-            })
-            .disposed(by: disposeBag)
 
         Filter.allCases.enumerated().forEach { index, filter in
             let segmentedControl = timetableView.filterView.segmentedControl
