@@ -7,7 +7,7 @@ class TimetableViewController: UIViewController {
 
     private let disposeBag = DisposeBag()
 
-    init(timetableService: TimetableService = LocalFileTimetableService(),
+    init(timetableService: TimetableService = HTTPTimetableService(),
          presenter: TimeTableCellPresenter = TimeTableCellPresenter(),
          filter: TimetableFiltering = TimetableFilter()) {
         self.timetableService = timetableService

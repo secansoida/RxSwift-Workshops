@@ -20,27 +20,14 @@ class HTTPTimetableService: TimetableService {
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        let requestObservable: Observable<[TimetableEntry]> = Observable.create { observer in
-            let dataTask = self.urlSession.dataTask(with: request) { (data, response, error) in
-                let statusCode = response.flatMap { $0 as? HTTPURLResponse }.map { $0.statusCode }
-                let timetable = data.flatMap { JSONDecoder.timetable(from: $0) }
-
-                if let timetable = timetable, let statusCode = statusCode, statusCode == 200 {
-                    observer.onNext(timetable.results)
-                    observer.onCompleted()
-                } else {
-                    observer.onError(error ?? TimetableServiceError.unknown)
+        return urlSession.rx.response(request: request)
+            .flatMap { (arg) -> Observable<[TimetableEntry]> in
+                let (response, data) = arg
+                guard response.statusCode == 200, let timetable = JSONDecoder.timetable(from: data) else {
+                    return .error(TimetableServiceError.unknown)
                 }
+                return .just(timetable.results)
             }
-
-            dataTask.resume()
-
-            return Disposables.create {
-                dataTask.cancel()
-            }
-        }
-
-        return requestObservable
             .observeOn(MainScheduler.instance)
     }
 
