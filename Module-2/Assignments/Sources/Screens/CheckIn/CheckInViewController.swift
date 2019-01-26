@@ -41,7 +41,18 @@ class CheckInViewController: UIViewController {
     private let checkInStatusSubject = PublishSubject<CheckInStatus>()
 
     private func setupBindings() {
-        /* TODO: set up bindings for check in button */
+
+        checkInView.checkInButton.rx.tap
+            .withLatestFrom(checkInView.nameTextField.rx.text)
+            .filter { !($0?.isEmpty ?? true) }
+            .map { $0! }
+            .flatMapLatest { [unowned self] in
+                self.checkInService.checkIn(timetableID: self.timetableID, username: $0)
+                    .map { CheckInStatus.success }
+                    .asDriver(onErrorJustReturn: .error)
+            }
+            .bind(to: checkInStatusSubject)
+            .disposed(by: disposeBag)
 
         checkInComplete
             .subscribe(onNext: { [weak self] in

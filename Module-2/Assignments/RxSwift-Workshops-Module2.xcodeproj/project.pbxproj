@@ -52,6 +52,7 @@
 		32672F328ADB653C2771E5CE /* DateFormatter+DepartureTimeFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 326726F7D70F0801F3440485 /* DateFormatter+DepartureTimeFormatter.swift */; };
 		35243D6521FCB034005C9EC5 /* TimetableViewController+ActivityIndicatorSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C93112921DD0BBB00CF3C99 /* TimetableViewController+ActivityIndicatorSpec.swift */; };
 		35243D6621FCB4EC005C9EC5 /* TimetableViewController+PullToRefreshSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C93112521DD07AC00CF3C99 /* TimetableViewController+PullToRefreshSpec.swift */; };
+		35243D6721FCBAED005C9EC5 /* CheckInViewControllerSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32672AC5CCE0100A93065CDC /* CheckInViewControllerSpec.swift */; };
 		4E7A58E621B8374800BC2F3E /* TimetableEntriesParsing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E7A58E521B8374800BC2F3E /* TimetableEntriesParsing.swift */; };
 		4EB9BAD521C006EA001BE102 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EB9BAD421C006EA001BE102 /* main.swift */; };
 		4EB9BAD821C01A9F001BE102 /* AppDelegateStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EB9BAD621C0071A001BE102 /* AppDelegateStub.swift */; };
@@ -975,6 +976,7 @@
 				32672D3774ADC6C5A9FCD62A /* TimetableEntry+TestData.swift in Sources */,
 				32672635401B17BEF7469C56 /* DateFormatter+WithGMT.swift in Sources */,
 				32672BC1A49DBE9462FF7504 /* TimetableEntryCellSpec.swift in Sources */,
+				35243D6721FCBAED005C9EC5 /* CheckInViewControllerSpec.swift in Sources */,
 				8C93112121DCF3A800CF3C99 /* UIApplication+RxSpec.swift in Sources */,
 				799D1C5821B7FE0300D2CB53 /* WindowFactorySpec.swift in Sources */,
 				32672A9451958081D4A04006 /* CheckInServiceSpy.swift in Sources */,
