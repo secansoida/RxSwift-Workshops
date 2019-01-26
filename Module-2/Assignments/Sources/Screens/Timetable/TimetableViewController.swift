@@ -22,7 +22,7 @@ class TimetableViewController: UIViewController {
         return view as? TimetableView
     }
 
-    lazy var activityIndicator: ActivityIndicator = {
+    private lazy var activityIndicator: ActivityIndicator = {
         let activityIndicator = ActivityIndicator()
         activityIndicator.asDriver().drive(UIApplication.shared.rx.progress)
             .disposed(by: disposeBag)
@@ -53,19 +53,27 @@ class TimetableViewController: UIViewController {
     private let presenter: TimeTableCellPresenter
     private let timetableFilter: TimetableFiltering
 
-    private func setUpTableViewDataSource() {
-
-        let filter = timetableView.filterView.segmentedControl.rx.selectedSegmentIndex
+    private lazy var selectedFilter = {
+        timetableView.filterView.segmentedControl.rx.selectedSegmentIndex
             .filter { $0 != UISegmentedControl.noSegment }
             .map { Filter.allCases[$0] }
+    }()
 
-        let timetableEntries = timetableService.timetableEntries
-            .trackActivity(activityIndicator)
-
-        Observable.combineLatest(filter, timetableEntries)
+    private lazy var fileteredTimetableEntries: Driver<[TimetableEntry]> = {
+        let timetableEntries = refreshControl.rx.controlEvent(.valueChanged).asObservable().startWith(())
+            .flatMapFirst { [unowned self] in
+                self.timetableService.timetableEntries
+                    .trackActivity(self.activityIndicator)
+        }
+        return Observable.combineLatest(selectedFilter, timetableEntries)
             .map { [weak self] in self?.timetableFilter.apply(filter: $0, for: $1) ?? [] }
             .map { $0.sorted { $0.departureTime < $1.departureTime } }
             .asDriver(onErrorJustReturn: [])
+    }()
+
+    private func setUpTableViewDataSource() {
+
+        fileteredTimetableEntries
             .drive(timetableView.tableView.rx.items(cellIdentifier: "TimetableCell")) { [weak self] index, model, cell in
                 self?.configure(cell: cell, with: model)
             }
@@ -101,6 +109,10 @@ class TimetableViewController: UIViewController {
 
     private func setUpRefreshControl() {
         timetableView.tableView.refreshControl = refreshControl
+
+        fileteredTimetableEntries
+            .drive(onNext: { [refreshControl] _ in refreshControl.endRefreshing() })
+            .disposed(by: disposeBag)
     }
 
     // MARK: Helpers
