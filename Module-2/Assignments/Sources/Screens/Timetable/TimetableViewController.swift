@@ -1,6 +1,7 @@
 import UIKit
 import RxSwift
 import RxCocoa
+import RxSwiftUtilities
 
 
 class TimetableViewController: UIViewController {
@@ -20,6 +21,13 @@ class TimetableViewController: UIViewController {
     var timetableView: TimetableView! {
         return view as? TimetableView
     }
+
+    lazy var activityIndicator: ActivityIndicator = {
+        let activityIndicator = ActivityIndicator()
+        activityIndicator.asDriver().drive(UIApplication.shared.rx.progress)
+            .disposed(by: disposeBag)
+        return activityIndicator
+    }()
 
     let refreshControl = UIRefreshControl(frame: .zero)
 
@@ -51,7 +59,10 @@ class TimetableViewController: UIViewController {
             .filter { $0 != UISegmentedControl.noSegment }
             .map { Filter.allCases[$0] }
 
-        Observable.combineLatest(filter, timetableService.timetableEntries)
+        let timetableEntries = timetableService.timetableEntries
+            .trackActivity(activityIndicator)
+
+        Observable.combineLatest(filter, timetableEntries)
             .map { [weak self] in self?.timetableFilter.apply(filter: $0, for: $1) ?? [] }
             .map { $0.sorted { $0.departureTime < $1.departureTime } }
             .asDriver(onErrorJustReturn: [])
