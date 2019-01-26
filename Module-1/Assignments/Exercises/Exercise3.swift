@@ -10,8 +10,7 @@ private let inputRight: Observable<Int> = Observable.events([.next(1), .next(2),
 // Połącz te strumienie w jeden a następnie pobieraj elementy dopóki nie pojawi się element większy od 20.
 // Edytuj tylko strumień przypisany do zmiennej `solution`.
 
-private let solution: Observable<Int> = Observable.of(inputLeft, inputRight)
-    .map { _ in 1 }
+private let solution: Observable<Int> = Observable.merge(inputLeft, inputRight).takeWhile { $0 <= 20 }
 
 class Exercise3: XCTestCase {
 

@@ -9,7 +9,7 @@ private let input: Observable<Int> = Observable.events([.next(1), .next(2), .nex
 // Utwórz tablicę elementów, w której błąd zostanie zmapowany na wartość -1.
 // Edytuj tylko strumień przypisany do zmiennej `solution`.
 
-private let solution: Observable<Int> = input
+private let solution: Observable<Int> = input.catchErrorJustReturn(-1)
 
 class Exercise5: XCTestCase {
 

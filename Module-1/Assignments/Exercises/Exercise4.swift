@@ -13,7 +13,8 @@ private let input: Observable<String> = Observable.of("ala", "ma", "kota")
 // Edytuj tylko strumień przypisany do zmiennej `solution`.
 
 private let solution: Observable<String> = input
-    .map { $0.capitalizingFirstLetter() }
+    .toArray()
+    .map { $0.joined(separator: " ").capitalizingFirstLetter() + "." }
 
 class Exercise4: XCTestCase {
 

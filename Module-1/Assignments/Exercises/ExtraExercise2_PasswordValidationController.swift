@@ -8,8 +8,7 @@ class PasswordValidationController: NSViewController {
     // MARK: - Validation
 
     static func isValid(text: Observable<String>, repeatedText: Observable<String>) -> Observable<Bool> {
-        // TODO:
-        return Observable.just(false)
+        return Observable.combineLatest(text, repeatedText).map { $0.0.count >= 3 && $0.0 == $0.1 }
     }
 
     // MARK - Lifecycle

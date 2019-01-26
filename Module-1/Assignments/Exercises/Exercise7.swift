@@ -16,8 +16,12 @@ private let input: Observable<Int?> = Observable.of(2,   6,   8,    3, nil, 24, 
 // Edytuj tylko strumień przypisany do zmiennej `solution`.
 
 private let solution: Observable<String> = input
-    .buffer(count: 1)
-    .map { _ in "1" }
+    .flatMap { $0.map { Observable.just($0) } ?? .empty() }
+    .filter { $0 >= 0 && $0 <= 9 }
+    .map { "\($0)" }
+    .buffer(count: 3)
+    .buffer(count: 3)
+    .map { $0.map { $0.joined() }.joined(separator: "-") }
 
 class Exercise7: XCTestCase {
 
